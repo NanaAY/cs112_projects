@@ -1,0 +1,832 @@
+Script started on Sat 08 Dec 2018 08:12:44 PM EST
+na29@maroon34:~/cs112/project08$ ls
+ArrayQueue.h	 PalindromeDetector.cpp        StackException.h
+Debug		 PalindromeDetector.h	       Stack.h
+drawnOnward.txt  PalindromeDetectorTester.cpp  tester.cpp
+drawnOut.txt	 PalindromeDetectorTester.h    typescript
+Exception.h	 QueueException.h
+na29@maroon34:~/cs112/project08$ cat ArrayQueue.h Palindre  romeDetector.cpp StackEx ceptin.h PalindromeDetector.h Stack.h drawnOnward.txt { PalindromeDetector.cpp tes ter.cpp PalindromeDetectorTestor.h Exception.h que   QueueException.h[Aceptin.h PalindromeDetector.h Stack.h drawnOnward.txt PalindromeDetector.cpp teTr.cpp tes[1@t[Aptin.h PalindromeDetector.h Stack.h drawnOnward.txt PalindromeDetectoTr.cpp test[1P[Aeptin.h PalindromeDetector.h Stack.h drawnOnward.txt PalindromeDetectorT.cpp tes[1@t[Aptin.h PalindromeDetector.h Stack.h drawnOnward.txt PalindromeDetectorTe.cpp te[1@s[Aptin.h PalindromeDetector.h Stack.h drawnOnward.txt PalindromeDetectorTes.cpp t[1@e[Aptin.h PalindromeDetector.h Stack.h drawnOnward.txt PalindromeDetectorTest.cpp [1@t[Aptin.h PalindromeDetector.h Stack.h drawnOnward.txt PalindromeDetectorTesto.c
+[1@p[Aeptin.h PalindromeDetector.h Stack.h drawnOnward.txt PalindromeDetectorTestor.cp[1@p[Aptin.h PalindromeDetector.h Stack.h drawnOnward.txt PalindromeDetectorTestorion.h PalindromeDetector.h Stack.h drawnOnward.txt PalindromeDetectorTestor.cp[1@p[Atio
+
+/* ArrayQueue.h declares a Queue class using a dynamic array.
+ * Begun by: Joel Adams, for CS 112 at Calvin College.
+ * Student name:Nana Osei Asiedu Yirenkyi
+ * project08
+ * Date: 11/19/2018
+ *
+ * Class Invariant:
+ *    mySize == 0 ||
+ *    mySize > 0 && myArray[myFirst] == getFirst()
+ *               && myArray[myLast] == getLast().
+ *
+ *  (When I am not empty:
+ *     myFirstIndex is the index of my oldest value;
+ *     myLastIndex is the index of my newest value.)
+ */
+
+#ifndef ARRAY_QUEUE_H_
+#define ARRAY_QUEUE_H_
+
+#include "QueueException.h"
+#include <cstring>      // memcpy()
+using namespace std;
+typedef int Item;
+template<class Item>
+
+class ArrayQueue {
+public:
+
+	ArrayQueue(const ArrayQueue& original);
+	virtual ~ArrayQueue();
+	ArrayQueue& operator=(const ArrayQueue& original);
+	unsigned getSize() const;
+	unsigned getCapacity() const;
+	bool isEmpty() const;
+	bool isFull() const;
+	ArrayQueue(unsigned capacity);
+	Item getFirst() const;
+	Item getLast() const;
+	void append(const Item& newItem);
+	Item& remove();
+	void makeCopyOf(const ArrayQueue& original);
+	void setCapacity(unsigned nc);
+
+protected:
+//	virtual void makeCopyOf(const ArrayQueue& original);
+private:
+	unsigned mySize;       // number of items I contain
+	unsigned myCapacity;   // how many items I can store
+	unsigned myFirst;      // index of oldest item (if any)
+	unsigned myLast;       // index of next available spot for append (if any)
+	Item* myArray;      // dynamic array of items
+
+	friend class ArrayQueueTester;
+};
+
+template<class Item>
+ArrayQueue<Item>::ArrayQueue(const ArrayQueue<Item>& original) {
+	makeCopyOf(original);
+}
+
+template<class Item>
+void ArrayQueue<Item>::makeCopyOf(const ArrayQueue<Item>& original) {
+	mySize = original.mySize;
+	myCapacity = original.myCapacity;
+	myFirst = original.myFirst;
+	myLast = original.myLast;
+	myArray = new Item[myCapacity];
+	memcpy(myArray, original.myArray, myCapacity * sizeof(Item));
+}
+template<class Item>
+ArrayQueue<Item>::~ArrayQueue() {
+	delete[] myArray;
+	myArray = NULL;
+	mySize = myFirst = myLast = 0;
+}
+template<class Item>
+ArrayQueue<Item>& ArrayQueue<Item>::operator=(const ArrayQueue<Item>& aQueue) {
+	if (this != &aQueue) {
+		delete[] myArray;
+		makeCopyOf(aQueue);
+	}
+	return *this;
+}
+template<class Item>
+bool ArrayQueue<Item>::isEmpty() const {
+	return mySize == 0;
+}
+template<class Item>
+bool ArrayQueue<Item>::isFull() const {
+	return getSize() == myCapacity;
+}
+template<class Item>
+unsigned ArrayQueue<Item>::getCapacity() const {
+	return myCapacity;
+}
+template<class Item>
+unsigned ArrayQueue<Item>::getSize() const {
+	return mySize;
+}
+
+/*ArrayQueue constructor makes an Array of certain size
+ *@param none
+ *Postcondition: an array with size of input value
+ */
+template<class Item>
+ArrayQueue<Item>::ArrayQueue(unsigned capacity) {
+	if (capacity > 0) {
+		myCapacity = capacity;
+		mySize = myFirst = myLast = 0;
+		Item * newArray = new Item[capacity];
+		myArray = newArray;
+	} else {
+		throw QueueException("Thrown at line 63:",
+				"Queue capacity must be greater than 0.");
+	}
+}
+
+/*myFirst accessor finds and returns the first value in the array
+ *@param: none
+ *Postcondition: the first value in the array is returned to the ostream
+ */
+template<class Item>
+Item ArrayQueue<Item>::getFirst() const {
+	if (mySize == 0) {
+		throw EmptyQueueException("Thrown at line 70");
+	} else {
+		return myArray[myFirst];
+	}
+}
+
+/*myLast accessor finds and returns the last value in the array
+ *@param:none
+ *Postcondition: the last item in the array is returned to ostream
+ */
+template<class Item>
+Item ArrayQueue<Item>::getLast() const {
+	if (mySize == 0) {
+		throw EmptyQueueException("Thrown at line 81:");
+	} else {
+		return myArray[((myLast - 1) + myCapacity) % myCapacity];
+	}
+}
+
+/* append method appends a new item to the end of the array
+ * @param: Item from input
+ * Postcondition: array with additional item at end and size refreshed
+ */
+template<class Item>
+void ArrayQueue<Item>::append(const Item& newItem) {
+	if (mySize == myCapacity) {
+		throw FullQueueException("Thrown at line 95:");
+	} else {
+		myArray[myLast] = newItem;
+		myLast = (myLast + 1) % myCapacity;
+		mySize++;
+	}
+}
+
+/* remove() method removes and returns first item on array
+ * @param: takes in item (from node)
+ * Postcondition: item in the array that the node was
+ *  pointing to is removed and returned
+ */
+template<class Item>
+Item& ArrayQueue<Item>::remove() {
+	if (mySize == 0) {
+		throw EmptyQueueException("Thrown at line 108:");
+	} else {
+		Item& result = myArray[myFirst];
+		myFirst = (myFirst + 1) % myCapacity;
+		mySize = mySize - 1;
+		return result;
+	}
+}
+/*setCapacity() method allocates array with new capacity (keeps old values)
+ * @param: new Capacity
+ * Postcondition: Throw exception if newCapacity < getSize(),
+ * copy values from old array to new one, deallocate old array memory
+ */
+template<class Item>
+void ArrayQueue<Item>::setCapacity(unsigned nc) {
+	if (nc == 0 || nc < getSize()) {
+		throw QueueException("Thrown at line 148: ",
+				"Capacity cannot be zero or less then size of queue!");
+	}
+	unsigned j = myFirst;
+	Item * newArray = new Item[nc];
+	for (unsigned i = 0; i < nc; i++) {
+		newArray[i] = myArray[j % myCapacity];
+		j++;
+	}
+	myFirst = 0;
+	myLast = mySize;
+	delete[] myArray;
+	myCapacity = nc;
+	myArray = newArray;
+
+}
+
+#endif /*ARRAY_QUEUE_H_*/
+
+/*PalindromeDetector.cpp defines methods for the class PalindromeDetector.h
+ *Joel Adams, for CS 112 at Calvin College.
+ * Student name: Nana Osei Asiedu Yirenyki
+ * Date: 11/19/2018
+ */
+
+#include "PalindromeDetector.h"
+using namespace std;
+
+/*
+ * Palindrome() constructs a Palindrome
+ * @param: a name for the file
+ * Postcondition: a file is used as input and the result is output into another file
+ */
+Palindrome::Palindrome() {
+	cout << "Enter Input file name: " << flush;
+	cin >> InputFile;
+	cout << "Enter Output file name: " << flush;
+	cin >> OutputFile;
+}
+/*~Palindrome() Destructor
+ * Postcondition: destructed and deallocated memory used by Palindrome
+ */
+Palindrome::~Palindrome() {
+}
+
+/*
+ * detectPalindrome() Read, write, check file for palindrome
+ * @param:none
+ * Postcondition: open iostream to files reads in line by line and
+ * finds *** and outputs it to the stream
+ */
+void Palindrome::detectPalindrome() {
+	ifstream fin(InputFile.c_str());
+	ofstream fout(OutputFile.c_str());
+	string line;
+	assert(fin.is_open());
+	while (not fin.eof()) {
+
+		getline(fin, line);
+		fout << line << flush;
+		if (isPalindrome(line)) {
+
+			fout << " *** " << endl;
+		} else {
+			fout << "" << endl;
+		}
+	}
+	fout.close();
+	fin.close();
+}
+
+/*
+ * isPalindrome() detecting method says yes or no
+ * @param: line of text in the input file
+ * Postcondition: try catch blocks, intitialize, return bool true or false,
+ * if char in string, push to stack, append to queue, if queue != 0, pop char from stack
+ * remove char from queue and return false, else return true
+ */
+bool Palindrome::isPalindrome(string str) {
+	Stack<char> so(1);
+	ArrayQueue<char> go(1);
+	char ch1;
+	char ch2;
+	for (unsigned i = 0; i < str.length(); i++) {
+		if (isalpha(str[i])) {
+			char cs = tolower(str[i]);
+			try {
+				so.push(cs);
+			} catch (StackException) {
+				so.setCapacity(so.getCapacity() * 2);
+				so.push(cs);
+			}
+			try {
+				go.append(cs);
+			} catch (FullQueueException) {
+				go.setCapacity(go.getCapacity() * 2);
+				go.append(cs);
+			}
+		}
+	}
+	if ((so.isEmpty()) && (go.isEmpty())) {
+		return false;
+	}
+	while (!(so.isEmpty()) && !(go.isEmpty())) {
+		ch1 = so.pop();
+		ch2 = go.remove();
+		if (ch1 != ch2) {
+			return false;
+		}
+	}
+	return true;
+}
+/* StackException.h models exceptions in stack operations.
+ * Joel Adams, for CS 112 at Calvin College.
+ * Student name: Nana Osei Asiedu Yirenyki
+ * Date: 11/19/2018
+ */
+
+#ifndef STACK_EXCEPTION
+#define STACK_EXCEPTION
+
+#include <iostream>
+using namespace std;
+
+ 
+class StackException {
+public:
+   StackException(const string& whereThrown,
+                  const string& message) { 
+       myLocation = whereThrown; 
+       myMessage = message; 
+   }
+
+   string asString() const {
+       return "*** StackException in " +
+               myLocation + ": " + myMessage; 
+   }
+
+private:
+   string myLocation;
+   string myMessage;
+};  // StackException
+
+
+/* Function to allow a StackException (or a subclass) to be displayed
+ * via an ostream.
+ * Parameters: out, an ostream;
+ *             se, a StackException.
+ * Postcondition: the string representation of se has been inserted
+ * into out
+ *             && return-value == out.
+ */
+inline ostream& operator<<(ostream& out, const StackException& se) {
+      out << se.asString();
+      return out;
+}
+
+#endif
+
+/*PalindromeDetector.h declares methods for the PalindromeDetector class
+ *Joel Adams, for CS 112 at Calvin College.
+ * Student name: Nana Osei Asiedu Yirenyki
+ * Date: 11/19/2018
+ */
+
+
+#ifndef PALINDROME_H_
+#define PALINDROME_H_
+
+#include "Stack.h"
+#include "ArrayQueue.h"
+#include <iostream>
+#include <cstdlib>//setting the Value of an Item//to include file
+#include <stdexcept>//setting the value of an Item//to throw range_error exception
+#include <fstream>//to read and write to file
+#include <cassert>//allows assertion
+
+using namespace std;
+
+class Palindrome {
+public:
+	Palindrome();
+	virtual ~Palindrome();
+	bool isPalindrome(string str);
+	void detectPalindrome();
+private:
+	string InputFile;
+	string OutputFile;
+
+};
+#endif /* PALINDROME_H_ */
+/* Stack.h provides a (dynamic-array-based) Stack class.
+ * Joel Adams, for CS 112 at Calvin College.
+ * Student name: Nana Osei Asiedu Yirenyki
+ * Date: 11/19/2018
+ *
+ * 
+ * Invariant: myTop == 0 && isEmpty() && !isFull()
+ *         || myTop == myCapacity && !isEmpty() && isFull()
+ *         || myTop > 0 && myTop < myCapacity && !isEmpty() && !isFull().
+ * Notes: 
+ * 1. Member myTop always contains the index of the next empty space in myArray
+ *        (the index of the array element into which the next pushed item will be placed).
+ * 2. Sending push() to a full Stack throws the exception Stack::Overflow.
+ * 3. Sending pop() or getTop() to an empty Stack throws the exception Stack::Underflow.
+ */
+
+#ifndef STACK_H_
+#define STACK_H_
+
+#include "StackException.h"
+#include <string>
+#include <iostream>
+#include <stdexcept>
+#include <fstream>
+#include <cassert>
+using namespace std;
+//typedef string Item;
+template<class Item>
+
+
+class Stack {
+public:
+	Stack(unsigned size);
+	Stack(const Stack& original);
+	~Stack();
+	Stack& operator=(const Stack& original);
+	bool isEmpty();
+	void push(const Item& it);
+	bool isFull();
+	Item getTop() const;
+	Item pop();
+	unsigned getSize();
+	unsigned getCapacity();
+	void setCapacity(int newCapacity);
+
+	
+protected:
+	void makeCopyOf(const Stack& original);
+	
+private:
+	unsigned myCapacity;
+	unsigned myTop;
+	Item*    myArray;
+	friend class StackTester;
+};
+
+
+
+/* explicit-value constructor
+ * Parameter: size, an unsigned value.
+ * Precondition: size > 0.
+ * Postcondition: myTop == 0 && myCapacity == size
+ *              && myArray contains the address of a dynamic array of 'size' entries.
+ */
+template<class Item>
+Stack<Item>::Stack(unsigned size) {
+	if (size > 0) {
+		myTop = 0;
+		myCapacity = size;
+		myArray = new Item[size];
+	} else {
+		throw StackException("Stack(size):", "size must be positive!.");
+	}
+}
+
+/* copy constructor
+ * Parameter: original, a Stack (const reference).
+ * Postcondition: I am a copy of original.
+ */
+template<class Item>
+Stack<Item>::Stack(const Stack& original) {
+	makeCopyOf(original);
+}
+
+/* utility method containing code refactored from
+ *  the copy constructor and operator=.
+ * Parameter: original, a Stack (const reference).
+ * Postcondition: I am a copy of original.
+ */
+template<class Item>
+void Stack<Item>::makeCopyOf(const Stack& original) {
+	myCapacity = original.myCapacity;
+	myArray = new Item[myCapacity];
+
+	for (unsigned i = 0; i < myCapacity; i++) {
+		myArray[i] = original.myArray[i];
+	}
+	myTop = original.myTop;
+}
+
+/* destructor
+ * Postcondition: myCapacity == 0 && myTop == 0
+ *             && myArray has been deallocated.
+ */
+template<class Item>
+Stack<Item>::~Stack() {
+	delete[] myArray;
+	myArray = NULL;
+	myCapacity = 0;
+	myTop = 0;
+}
+
+/* assignment operator
+ * Parameter: original, a Stack (const reference).
+ * Postcondition: I am a copy of original
+ *              && I have been returned.
+ */
+template<class Item>
+Stack<Item>& Stack<Item>::operator=(const Stack& original) {
+	if (this != &original) {
+		delete[] myArray;
+		makeCopyOf(original);
+	}
+	return *this;
+}
+
+/*isEmpty operator
+ * Parameter: stack
+ * Postcondition: whether or not I am empty
+ */
+template<class Item>
+bool Stack<Item>::isEmpty() {
+	if (myTop == 0) {
+		return true;
+	} else {
+		return false;
+	}
+}
+
+/*push operator
+ *Parameter: an Item
+ *PostCondition: a stack with a new item if there is space
+ */
+template<class Item>
+void Stack<Item>::push(const Item& it) {
+	if (myTop == myCapacity) {
+		throw StackException("push()", "stack is full");
+	} else {
+		for (unsigned i = 0; i < myCapacity; i++) {
+			myArray[myTop] = it;
+		}
+		myTop += 1;
+	}
+}
+/*isFull operator
+ * Parameter: stack
+ * Postcondition: whether or not I am empty
+ */
+template<class Item>
+bool Stack<Item>::isFull() {
+	if (myTop == myCapacity) {
+		return true;
+	}
+}
+/*getTop operator
+ * Parameter: a stack
+ * Postcondition: value of the item on the top most on stack
+ */
+template<class Item>
+Item Stack<Item>::getTop() const {
+	if (myTop > 0) {
+		return myArray[myTop - 1];
+	} else {
+		throw StackException("getTop()", "stack is empty");
+	}
+}
+
+/* pop operator
+ * Parameter: index
+ * Postcondition: stack with the item at index myTop removed
+ */
+template<class Item>
+Item Stack<Item>::pop() {
+	if (isEmpty() == true) {
+		throw StackException("pop()", " pop(): stack is empty!");
+	} else {
+		myTop -= 1;
+		return myArray[myTop];
+	}
+
+}
+
+/*getSize() method to obtain size of stack
+ *@param: myTop
+ *Postcondition: value of myTop stored as size
+ */
+template<class Item>
+unsigned Stack<Item>::getSize() {
+	return myTop;
+}
+
+/*getCapacity() method to obtain capacity of stack
+ *@param: myCapacity
+ *Postcondition: value of myCapacity stored as the capacity of stack
+ */
+template<class Item>
+unsigned Stack<Item>::getCapacity() {
+	return  myCapacity;
+}
+/*setCapacity() method to set the capacity of stack
+ *@param: newCapacity
+ *Postcondition: stack with new capacity from input, or error(if size > capacity)
+ */
+
+template<class Item>
+void Stack<Item>::setCapacity(int nc) {
+	if (nc < myTop) {
+		throw StackException("setCapacity()", "New capacity cannot be smaller than myCapacity!");
+	}
+	Item * x = new Item[nc];
+	for (unsigned i = 0; i<myTop; i++) {
+		x[i] = myArray[i];
+	}
+
+	unsigned real = nc;
+	delete [] myArray;
+	myCapacity = real;
+	myArray = x;
+}
+
+#endif
+Drawn Onward
+
+by Felicia Lamport
+extended by Joel Adams        
+
+The learned men of Rome
+could turn a palindrome
+but they were not the first.
+
+For Adam, says the myth,
+began conversing with
+a sentence that reversed:
+"Madam, I'm Adam"
+seemed
+a phrase to be esteemed
+the moment it was popped.
+But that was not to be
+- his lady instantly said
+"Eve"
+which left it topped.
+
+Eve damned Eden; mad Eve
+bore two sons,
+as goes the fable,
+the first named
+Cain, a maniac,
+who slew his brother Able.
+He lived as a devil, eh?
+Violence begat violence, until today
+we panic in a pew,
+the cycle turns anew
+and descendents of Ned Ludd
+-- dumb mobs -- bomb mud.
+
+Asked his favorite dessert, Archimedes said,
+"I prefer PI"
+
+And Napoleon, post-Josephine, mused,
+"Able was I, ere I saw Elba,"
+as he met his Waterloo, confused.
+
+Anonymous, the most
+prolific bard, can boast
+of being host
+to these:
+
+"Was it a car or a cat I saw ?"
+
+"Some men interpret nine memos."
+
+"Lewd did I live, evil I did dwel."
+
+"Sex at noon taxes."
+
+"A man, a plan, a canal, Panama !"
+
+"Stop, murder us not, tonsured rumpots !"
+
+"Straw? No, too stupid a fad. I put soot on warts."
+
+"Doc, note: I dissent. A fast never prevents a fatness. I diet on cod."
+
+"Kay, a red nude, peeped under a yak."
+
+and that marvel of marvels:
+
+"Sit on a potato pan, Otis !"
+
+What span, what palindromic bliss !
+I've wrung the alphabet
+repeatedly to get
+a Janus-phrase so spry
+at backwards somersaults.
+But as each hope turns false,
+in words, alas, drown I.
+
+cat: PalindromeDetectorTestor.cpp: No such file or directory
+/* tester.cpp drives the testing of the Queue classes.
+ * Joel Adams, for CS 112 at Calvin College.
+ */
+
+
+#include "PalindromeDetectorTester.h"
+ 
+ int main() {
+	PalindromeDetectorTester pt;
+	pt.runTests();
+ }
+ 
+ 
+cat: PalindromeDetectorTestor.h: No such file or directory
+/* Exception.h defines a class to consolidate the functionality
+ *  that different kinds of exceptions have in common.
+ * Joel Adams, for CS 112 at Calvin College.
+ */
+
+#ifndef EXCEPTION_H_
+#define EXCEPTION_H_
+
+#include <string>    // string
+#include <iostream>  // ostream
+using namespace std;
+
+class Exception {
+public:
+   /* construct an Exception
+    * Parameters: whereThrown, a string naming the method that threw me.
+    *              message, a description of the problem.
+    */
+   Exception(const string& whereThrown, const string& message) { 
+      myLocation = whereThrown; 
+      myMessage = message; 
+   }
+   
+   virtual ~Exception() {}
+   
+   /* build a string representation of myself
+    * (polymorphic, in case you want to override it)
+    */
+   virtual string asString() const { 
+   	  return "*** " + className() + " in " + myLocation + ": "
+                  + myMessage; 
+   }
+   
+   /* polymorphic method to retrieve the name of the class
+    *  (used by asString() above)
+    */
+   virtual string className() const {
+   	  return "Exception";
+   }
+
+private:
+   string myLocation;    // the method where I was thrown
+   string myMessage;     // a description of the problem
+};  // Exception
+
+/* insert an Exception (or its subclass) into an ostream
+ * Parameters: out, an ostream;
+ *             e, an Exception.
+ * Postcondition: out contains e's string representation
+ *               && out is the return-value.
+ */
+inline ostream& operator<<(ostream& out, const Exception& e) {
+	out << e.asString();
+	return out;
+}
+      
+#endif /*EXCEPTION_H_*/
+
+/* QueueException.h provides a simple exception class for Queues to throw,
+ *   plus subclasses (EmptyQueueException, FullQueueException)
+ *   for more fine-grained error-handling.
+ * See Exception.h for its superclass.
+ * Joel Adams, for CS 112 at Calvin College.
+ * Student name: Nana Osei Asiedu Yirenyki
+ * Date: 11/19/2018
+ */
+ 
+#ifndef QUEUEEXCEPTION_H_
+#define QUEUEEXCEPTION_H_
+
+#include "Exception.h"
+
+class QueueException : public Exception {
+public:
+   QueueException(const string& whereThrown, const string& message)
+   : Exception(whereThrown, message)
+   {}
+   
+   virtual string className() const {
+   	 return "QueueException";
+   }
+};
+
+class EmptyQueueException : public QueueException {
+public:
+   EmptyQueueException(const string& whereThrown)
+    : QueueException(whereThrown, "queue is empty")
+   {}
+   
+   virtual string className() const {
+   	  return "EmptyQueueException";
+   }
+};
+
+class FullQueueException : public QueueException {
+public:
+   FullQueueException(const string& whereThrown)
+    : QueueException(whereThrown, "queue is full")
+   {}
+   
+   virtual string className() const {
+   	  return "FullQueueException";
+   }
+};
+
+
+#endif /*QUEUEEXCEPTION_H_*/
+
+na29@maroon34:~/cs112/project08$ cd Debug/
+na29@maroon34:~/cs112/project08/Debug$ ls
+makefile	      PalindromeDetector.o	  project08   tester.d
+objects.mk	      PalindromeDetectorTester.d  sources.mk  tester.o
+PalindromeDetector.d  PalindromeDetectorTester.o  subdir.mk
+na29@maroon34:~/cs112/project08/Debug$ make all
+make: Nothing to be done for 'all'.
+na29@maroon34:~/cs112/project08/Debug$ cd ..
+na29@maroon34:~/cs112/project08$ ./Debug/project08
+Testing class PalindromeDetectorTester...
+- Testing Constructor & detectPal() & isPal()...
+Enter Input file name: drawnOnward.txt
+Enter Output file name: drawnOnwardOut.txt
+ 1  2 ...Passed!
+All tests passed!
+
+na29@maroon34:~/cs112/project08$ exit
+
+Script done on Sat 08 Dec 2018 08:17:48 PM EST
